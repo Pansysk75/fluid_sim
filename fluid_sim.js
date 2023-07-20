@@ -2,6 +2,8 @@
 // Get the canvas element and its 2D context
 const canvas = document.getElementById('myCanvas');
 const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth * 0.8;
+canvas.height = window.innerHeight * 0.8;
 
 class Fluid {
     constructor(size_x, size_y) {
@@ -17,8 +19,8 @@ class Fluid {
 
         for (var i = 0; i < this.size_x; i++) {
             for (var j = 0; j < this.size_y; j++) {
-                if (i == 0 || i == (this.size_x - 1) || j == (this.size_y - 1) || j == (0)) {
-                    this.s[i * this.size_y + j] == 0.0;
+                if ((i == 0) || (i == (this.size_x - 1)) || (j == (this.size_y - 1)) || (j == 0)) {
+                    this.s[i * this.size_y + j] = 0.0;
                 }
             }
         }
@@ -68,7 +70,7 @@ class Fluid {
                     }
 
                     d = d / s
-                    d = (1.0 * d)
+                    d = (0.8 * d)
 
                     this.p[i * n + j] += d // not accurate, but it's only used in visualization anyways
 
@@ -190,8 +192,9 @@ class Fluid {
     }
 }
 
-// var fluid = new Fluid(canvas.width, canvas.height)
-var fluid = new Fluid(50, 50)
+var resolution_x = 50
+var resolution_y = Math.floor(canvas.height * resolution_x / canvas.width)
+var fluid = new Fluid(resolution_x, resolution_y)
 
 
 function draw() {
@@ -204,36 +207,19 @@ function draw() {
 
     const n = fluid.size_y;
 
-    var p = 0
     for (var i = 0; i < fluid.size_x; i++) {
         for (var j = 0; j < fluid.size_y; j++) {
 
-            // r = Math.abs((fluid.u[j * n + i] + fluid.v[j * n + i]) / 2)
-            // g = Math.abs((fluid.u[j * n + i] - fluid.v[j * n + i]) / 2)
-            // b = Math.abs((-fluid.u[j * n + i] - fluid.v[j * n + i]) / 2)
 
-
-            // r = Math.max(fluid.v[j * n + i], 0)
-            // g = Math.max(fluid.u[j * n + i], 0)
-            // b = Math.max(-fluid.v[j * n + i], 0)
-            if (fluid.s[j * n + i] == 0) {
+            if (fluid.s[i * n + j] == 0) {
                 r = 0
                 g = 0
                 b = 0
             } else {
-                r = fluid.p[i * n + j]
-                g = fluid.p[i * n + j] + Math.abs(fluid.u[i * n + j])
-                b = fluid.p[i * n + j] + Math.abs(fluid.v[i * n + j])
+                r = 255 * (fluid.p[i * n + j])
+                g = 255 * (fluid.p[i * n + j] + Math.abs(fluid.u[i * n + j]))
+                b = 255 * (fluid.p[i * n + j] + Math.abs(fluid.v[i * n + j]))
             }
-
-
-            r *= 255
-            g *= 255
-            b *= 255
-
-            // r = 255
-            // g = 0
-            // b = 255
 
             var px_begin = Math.floor(i * canvas.width / fluid.size_x)
             var px_end = Math.floor((i + 1) * canvas.width / fluid.size_x)
