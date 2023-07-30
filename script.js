@@ -32,10 +32,14 @@ var is_running = true;
 
 function update() {
 
-    var click_power = 10000.0
+    var click_power = 1.0
     if (mouse_is_down) {
-        fluid.u[(mouse_x) * fluid.size_y + mouse_y] -= click_power * dt
-        fluid.m[(mouse_x) * fluid.size_y + mouse_y] += click_power * dt / 100;
+        // fluid.u[(mouse_x) * fluid.size_y + mouse_y] = click_power / dt
+        // fluid.u[(mouse_x - 1) * fluid.size_y + mouse_y] = click_power / dt
+        fluid.v[(mouse_x) * fluid.size_y + mouse_y + 1] = click_power / dt
+
+
+        fluid.m[(mouse_x) * fluid.size_y + mouse_y] += 50 / fps;
 
         // fluid.u[(mouse_x + 1) * fluid.size_y + mouse_y] += click_power * dt
         // fluid.v[mouse_x * fluid.size_y + mouse_y] -= click_power * dt
@@ -87,10 +91,7 @@ document.getElementById("cb_render_material").onclick = function () { render_mat
 document.getElementById("cb_render_velocity").onclick = function () { render_velocity = this.checked; };
 document.getElementById("cb_render_pressure").onclick = function () { render_pressure = this.checked; };
 
-
-
-
-// Update the current slider value (each time you drag the slider handle)
+// Update slider values
 document.getElementById("slider_dt").oninput = function () { dt = this.value; document.getElementById("label_dt").innerHTML = this.value; }
 document.getElementById("slider_fps").oninput = function () { fps = this.value; document.getElementById("label_fps").innerHTML = this.value; }
 
