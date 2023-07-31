@@ -162,6 +162,8 @@ class Fluid {
         // var u_down = u01 * (x_adv - 1) + u11 * x_adv
         // var u_interp = u_up * (y_adv - 1) + u_down * y_adv
 
+        x = Math.floor(x);
+        y = Math.floor(y);
         var u_interp = this.avgU(x, y)
         var v_interp = this.avgV(x, y)
 
@@ -187,6 +189,8 @@ class Fluid {
         // var m_down = m01 * (x_adv - 1) + m11 * x_adv
         // var m_interp = m_up * (y_adv - 1) + m_down * y_adv
 
+        x = Math.floor(x);
+        y = Math.floor(y);
         var m_interp = this.avgM(x, y)
 
         return m_interp;
@@ -209,8 +213,8 @@ class Fluid {
                 }
 
                 var u_here = this.avgU(x * n + y)
-                // var x_prev = Math.floor(x - u_here * dt)
                 var x_prev = x - u_here * dt
+                // var x_prev = Math.floor(x - u_here * dt)
 
                 var v_here = this.avgV(x * n + y)
                 // var y_prev = Math.floor(y - v_here * dt)
@@ -265,39 +269,62 @@ class Fluid {
             this.calc_gravity(dt);
         }
 
-        this.solve_incompressibility(dt, 1);
+        this.solve_incompressibility(dt, 5);
 
         if (sim_advection) {
             this.advect_velocity(dt);
             this.advect_material(dt);
         }
+    }
 
+    get_cell_data(x, y) {
+        var data = {};
+        data['x'] = x;
+        data['y'] = y;
+        data["u"] = this.get_u_at(x, y);
+        data["v"] = this.get_v_at(x, y);
+        data["m"] = this.get_m_at(x, y);
+        const n = this.size_y;
+        data["p"] = this.p[x * n + y];
+        data["s"] = this.s[x * n + y];
+        return data;
     }
 }
 
 // Helps with the rendering by calculating a time-varying weight to adjust the exposure
-class ExposureHelper{
-    constructor(){
+class ExposureHelper {
+    constructor() {
         this.min = 0.0
-        this.min_old = 0.0
+        this.exposure_min = 0.0
         this.max = 1.0
-        this.max_old = 1.0
+        this.exposure_max = 1.0
     }
     // Adjust the values that do the actual exposing, call every frame or so
-    update(amt){
-        var overexposure = 0.99
-        this.min_old = (this.min_old * (1-amt)) + this.min*amt;
-        this.max_old = (this.max_old * (1-amt)) + this.max*amt*overexposure;
+    update(amt, update_min) {
+        var overexposure = 0.9
+        // Tend the exposure toward the max
+        this.exposure_max = (this.exposure_max * (1 - amt)) + this.max * amt;
 
-        if(this.min_old >= this.max_old) this.max_old = this.min_old + 0.0001;
+        if (update_min) {
+            this.exposure_min = (this.exposure_min * (1 - amt)) + this.min * amt;
+        }
+
+        // Reset min-max for next iteration:
+        this.max = 0.0
+        this.min = 1000;
+        // if (this.min_old >= this.max_old) this.max_old = this.min_old + 0.0001;
     }
     // Transform a value according to the exposure
-    apply(val){
-        return (val-this.min_old)/(this.max_old-this.min_old);
+    apply(val) {
+        return (val - this.exposure_min) / (this.exposure_max - this.exposure_min);
     }
 };
 
 p_exposure = new ExposureHelper();
+u_v_exposure = new ExposureHelper();
+// m_exposure = new ExposureHelper();
+
+
 
 function render_fluid(canvas, fluid, render_material, render_velocity, render_pressure) {
     const ctx = canvas.getContext('2d', { willReadFrequently: true });
@@ -309,7 +336,12 @@ function render_fluid(canvas, fluid, render_material, render_velocity, render_pr
 
     const n = fluid.size_y;
 
-    p_exposure.update(0.04);
+    if (render_pressure) {
+        p_exposure.update(0.002, false);
+    }
+    if (render_velocity) {
+        u_v_exposure.update(0.002, false);
+    }
 
     for (var i = 0; i < fluid.size_x; i++) {
         for (var j = 0; j < fluid.size_y; j++) {
@@ -325,16 +357,22 @@ function render_fluid(canvas, fluid, render_material, render_velocity, render_pr
                     b += (fluid.m[i * n + j]) * 255
                 }
                 if (render_velocity) {
-                    g += Math.max(fluid.u[i * n + j], 0)
-                    b += Math.max(-fluid.u[i * n + j], 0)
+                    var u = Math.abs(fluid.u[i * n + j]);
+                    var v = Math.abs(fluid.v[i * n + j]);
+                    if (u < u_v_exposure.min) u_v_exposure.min = u;
+                    if (v < u_v_exposure.min) u_v_exposure.min = v;
+                    if (u > u_v_exposure.max) u_v_exposure.max = u;
+                    if (v > u_v_exposure.max) u_v_exposure.max = v;
+                    g += 255 * u_v_exposure.apply(u);
+                    b += 255 * u_v_exposure.apply(v);
                     // g += Math.abs(fluid.u[i * n + j])
                     // b += Math.abs(fluid.v[i * n + j])
                 }
                 if (render_pressure) {
                     var p = fluid.p[i * n + j]
 
-                    if(p < p_exposure.min) p_exposure.min = p;
-                    if(p > p_exposure.max) p_exposure.max = p;
+                    if (p < p_exposure.min) p_exposure.min = p;
+                    if (p > p_exposure.max) p_exposure.max = p;
                     val = 255 * p_exposure.apply(p);
                     r += val;
                     g += val;
@@ -364,17 +402,17 @@ function render_fluid(canvas, fluid, render_material, render_velocity, render_pr
             }
 
         }
-        ctx.putImageData(id, 0, 0);
 
     }
+    ctx.putImageData(id, 0, 0);
 
     // Render velocity arrows
     if (render_velocity) {
 
+        ctx.lineWidth = 1;
         for (var i = 0; i < fluid.size_x; i++) {
             for (var j = 0; j < fluid.size_y; j++) {
                 // var render_velocitiy_lines = true;
-                ctx.lineWidth = 1;
                 ctx.beginPath();
 
                 var start_x = (i + 0.5) * canvas.width / fluid.size_x;

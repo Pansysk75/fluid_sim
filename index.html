@@ -20,8 +20,8 @@
             <div class="sim-controls">
                 <div class="slider-container">
                     <label>dt: </label>
-                    <label class="slider_value" id="label_dt">0.005</label>
-                    <input type="range" step="0.005" min="0.005" max="0.1" value="0.05" class="slider" id="slider_dt">
+                    <label class="slider_value" id="label_dt">0.001</label>
+                    <input type="range" step="0.001" min="0.001" max="0.1" value="0.01" class="slider" id="slider_dt">
                 </div>
                 <div class="slider-container">
                     <label>FPS: </label>
@@ -34,6 +34,7 @@
                     <button id="btn_step">Step</button>
                     <button id="btn_reset">RESET</button>
                 </div>
+
             </div>
 
             <div class="option-buttons">
@@ -42,6 +43,10 @@
                 <label> <input type="checkbox" id="cb_render_velocity" checked> Velocity </label>
                 <label> <input type="checkbox" id="cb_render_pressure" checked> Pressure </label>
             </div>
+
+            <textarea class="cell-stats" id="cell-stats">
+                
+            </textarea>
 
         </div>
 
@@ -77,15 +82,15 @@
         grid-row: 1;
         display: flex;
         flex-direction: row;
-        align-items: flex-end;
-        /* align-items: stretch; */
+        align-items: stretch;
+        /* align-items: flex-end; */
         justify-content: space-between;
     }
 
     .control-row>* {
         flex-basis: 0;
         flex-grow: 1;
-        /* border: solid 2px brown; */
+        border: solid 2px brown;
     }
 
     .option-buttons {
@@ -108,7 +113,7 @@
 
     .sim-controls>* {
         flex-basis: 0;
-        flex-grow: 1;
+        /* flex-grow: 1; */
         /* border: solid 2px purple; */
 
     }
@@ -122,10 +127,6 @@
         padding: 2px;
     }
 
-    .slider-container>.slider {
-        /* flex-grow: 4; */
-    }
-
 
 
     .play-pause-buttons {
@@ -133,6 +134,10 @@
         justify-content: center;
         align-items: flex-end;
         padding: 3px;
+    }
+
+    .cell-stats{
+        white-space: pre;
     }
 
     .canvas_container {
