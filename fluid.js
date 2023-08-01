@@ -34,10 +34,10 @@ class Fluid {
     calc_gravity(dt) {
         // Add downward due to gravity
         const n = this.size_y;
-        const gravity = 9.8 // m/s
+        const gravity = 9.8*(2*this.size_y) // cells/s
         for (var i = 0; i < this.size_x; i++) {
             for (var j = 0; j < this.size_y - 1; j++) {
-                if (this.s[i * n + j] != 0.0 && this.s[i * n + j + 1] != 0.0) {
+                if (this.s[i * n + j] != 0.0) {
                     this.v[i * n + j] += gravity * dt;
                 }
             }
@@ -67,7 +67,7 @@ class Fluid {
                         continue;
                     }
 
-                    d = 1.8 * d / s
+                    d = 1.6 * d / s
 
                     this.p[i * n + j] += d * 0.1; // not accurate, but it's only used in visualization anyways
 
@@ -80,7 +80,7 @@ class Fluid {
                     this.u[i * n + j] -= sx0 * d
                     this.v[i * n + j] -= sy0 * d
                     this.u[(i + 1) * n + j] += sx1 * d
-                    this.v[(i * n + j + 1)] += sy1 * d
+                    this.v[i * n + j + 1] += sy1 * d
                 }
             }
             // this.u = this.new_u.slice();
@@ -117,21 +117,47 @@ class Fluid {
     }
 
 
+    // avgU(x, y) {
+    //     var u = (this.get_u_at(x, y - 1) + this.get_u_at(x, y) +
+    //         this.get_u_at(x + 1, y - 1) + this.get_u_at(x + 1, y)) * 0.25;
+    //     return u;
+    // }
+
+    // avgV(x, y) {
+    //     var v = (this.get_v_at(x, y - 1) + this.get_v_at(x, y) +
+    //         this.get_v_at(x + 1, y - 1) + this.get_v_at(x + 1, y)) * 0.25;
+    //     return v;
+    // }
     avgU(x, y) {
-        var u = (this.get_u_at(x, y - 1) + this.get_u_at(x, y) +
-            this.get_u_at(x + 1, y - 1) + this.get_u_at(x + 1, y)) * 0.25;
+        var u = (
+            this.get_u_at(x, y) +
+            this.get_u_at(x, y - 1) +
+            this.get_u_at(x, y + 1) +
+            this.get_u_at(x - 1, y) +
+            this.get_u_at(x + 1, y)
+        ) * 0.2;
         return u;
     }
 
     avgV(x, y) {
-        var v = (this.get_v_at(x, y - 1) + this.get_v_at(x, y) +
-            this.get_v_at(x + 1, y - 1) + this.get_v_at(x + 1, y)) * 0.25;
+        var v = (
+            this.get_v_at(x, y) +
+            this.get_v_at(x, y - 1) +
+            this.get_v_at(x, y + 1) +
+            this.get_v_at(x - 1, y) +
+            this.get_v_at(x + 1, y)
+        ) * 0.2;
         return v;
     }
     avgM(x, y) {
-        var v = (this.get_m_at(x, y) + this.get_m_at(x + 1, y) +
-            this.get_m_at(x - 1, y) + this.get_m_at(x, y + 1) * this.get_m_at(x, y - 1)) * 0.2;
-        return v;
+        var m = (
+            this.get_m_at(x, y) +
+            this.get_m_at(x, y - 1) +
+            this.get_m_at(x, y + 1) +
+            this.get_m_at(x - 1, y) +
+            this.get_m_at(x + 1, y)
+        ) * 0.2;
+        return m;
     }
 
     interpolate_velocities(x, y) {
@@ -162,8 +188,8 @@ class Fluid {
         // var u_down = u01 * (x_adv - 1) + u11 * x_adv
         // var u_interp = u_up * (y_adv - 1) + u_down * y_adv
 
-        x = Math.floor(x);
-        y = Math.floor(y);
+        x = Math.round(x);
+        y = Math.round(y);
         var u_interp = this.avgU(x, y)
         var v_interp = this.avgV(x, y)
 
@@ -189,8 +215,8 @@ class Fluid {
         // var m_down = m01 * (x_adv - 1) + m11 * x_adv
         // var m_interp = m_up * (y_adv - 1) + m_down * y_adv
 
-        x = Math.floor(x);
-        y = Math.floor(y);
+        x = Math.round(x);
+        y = Math.round(y);
         var m_interp = this.avgM(x, y)
 
         return m_interp;
@@ -200,8 +226,8 @@ class Fluid {
         // Since in reality a fluid is comprised of moving particles (and we only have a static grid),
         // we mimic the movement of particles by transferring velocities. Each cell inherits the velocity
         // of the cell where we estimate it would have "come from" (by subtracting u*dt from the current position).
-        this.new_u = this.u.slice();
-        this.new_v = this.v.slice();
+        // this.new_u = this.u.slice();
+        // this.new_v = this.v.slice();
 
         const n = this.size_y;
 
@@ -209,20 +235,25 @@ class Fluid {
             for (var y = 0; y < this.size_y; y++) {
 
                 if (this.s[x * n + y] == 0.0) {
-                    continue
+                    continue;
                 }
 
-                var u_here = this.avgU(x * n + y)
-                var x_prev = x - u_here * dt
-                // var x_prev = Math.floor(x - u_here * dt)
+                var u_here = this.avgU(x, y);
+                var x_prev = x - (u_here * dt);
+                // var u_here = this.u[x * n + y];
+                // var x_prev = Math.floor(x - u_here * dt);
 
-                var v_here = this.avgV(x * n + y)
-                // var y_prev = Math.floor(y - v_here * dt)
-                var y_prev = y - v_here * dt
+                var v_here = this.avgV(x, y);
+                var y_prev = y - (v_here * dt);
+                // var v_here = this.v[x * n + y];
+                // var y_prev = Math.floor(y - v_here * dt);
 
-                var u_v_interp = this.interpolate_velocities(x_prev, y_prev)
-                this.new_u[x * n + y] = u_v_interp[0]
-                this.new_v[x * n + y] = u_v_interp[1]
+                var u_v_interp = this.interpolate_velocities(x_prev, y_prev);
+                this.new_u[x * n + y] = u_v_interp[0];
+                this.new_v[x * n + y] = u_v_interp[1];
+
+                // this.new_u[x * n + y] = this.avgU(x_prev,y_prev);
+                // this.new_v[x * n + y] = this.avgV(x_prev,y_prev);
 
             }
         }
@@ -234,7 +265,7 @@ class Fluid {
 
     advect_material(dt) {
 
-        this.new_m = this.m.slice();
+        // this.new_m = this.m.slice();
         const n = this.size_y;
 
         for (var x = 0; x < this.size_x; x++) {
@@ -244,11 +275,13 @@ class Fluid {
                     continue
                 }
 
-                var u_here = this.avgU(x * n + y)
-                var x_prev = x - u_here * dt
+                var u_here = this.avgU(x, y)
+                var x_prev = x - (u_here * dt)
+                // var x_prev = Math.floor(x - u_here * dt)
 
-                var v_here = this.avgV(x * n + y)
-                var y_prev = y - v_here * dt
+                var v_here = this.avgV(x, y)
+                var y_prev = y - (v_here * dt)
+                // var y_prev = Math.floor(y - v_here * dt)
 
                 this.new_m[x * n + y] = this.interpolate_material(x_prev, y_prev)
                 // this.new_m[x * n + y] = this.get_m_at(x_prev, y_prev)
@@ -269,7 +302,7 @@ class Fluid {
             this.calc_gravity(dt);
         }
 
-        this.solve_incompressibility(dt, 5);
+        this.solve_incompressibility(dt, 4);
 
         if (sim_advection) {
             this.advect_velocity(dt);
@@ -337,10 +370,10 @@ function render_fluid(canvas, fluid, render_material, render_velocity, render_pr
     const n = fluid.size_y;
 
     if (render_pressure) {
-        p_exposure.update(0.002, false);
+        p_exposure.update(0.02, false);
     }
     if (render_velocity) {
-        u_v_exposure.update(0.002, false);
+        u_v_exposure.update(0.02, false);
     }
 
     for (var i = 0; i < fluid.size_x; i++) {

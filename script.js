@@ -37,22 +37,16 @@ function update() {
     var x =  Math.floor(mouse_x);
     var y =  Math.floor(mouse_y);
 
-    var click_power = 10.0
+    var click_power = 20.0/dt
     if (mouse_is_down) {
         var add_u = (mouse_x - mouse_prev_x) * click_power;
         var add_v = (mouse_y - mouse_prev_y) * click_power;
 
         fluid.u[(x) * fluid.size_y + y] += add_u;
         fluid.v[(x) * fluid.size_y + y] += add_v;
-        // fluid.u[(mouse_x) * fluid.size_y + mouse_y] = click_power / dt
-        // fluid.u[(mouse_x - 1) * fluid.size_y + mouse_y] = click_power / dt
 
+        fluid.m[(x) * fluid.size_y + y] += 4;
 
-        // fluid.m[(mouse_x) * fluid.size_y + mouse_y] += 50 / fps;
-
-        // fluid.u[(mouse_x + 1) * fluid.size_y + mouse_y] += click_power * dt
-        // fluid.v[mouse_x * fluid.size_y + mouse_y] -= click_power * dt
-        // fluid.v[mouse_x * fluid.size_y + mouse_y + 1] += click_power * dt
     }
     if (is_running) {
         fluid.update(dt, sim_gravity, sim_advection);
