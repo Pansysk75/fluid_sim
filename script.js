@@ -70,9 +70,6 @@ function getCursorPosition(canvas, event) {
     mouse_prev_y = mouse_y;
     mouse_x = (event.clientX - rect.left) / (rect.width / fluid.size_x)
     mouse_y = (event.clientY - rect.top) / (rect.height / fluid.size_y)
-    // mouse_x = Math.floor((event.clientX - rect.left) / (rect.width / fluid.size_x))
-    // mouse_y = Math.floor((event.clientY - rect.top) / (rect.height / fluid.size_y))
-    console.log("x: " + mouse_x + " y: " + mouse_y)
 }
 
 // Handle mouse events

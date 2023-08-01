@@ -34,7 +34,7 @@ class Fluid {
     calc_gravity(dt) {
         // Add downward due to gravity
         const n = this.size_y;
-        const gravity = 9.8*(2*this.size_y) // cells/s
+        const gravity = 9.8 * (2 * this.size_y) // cells/s
         for (var i = 0; i < this.size_x; i++) {
             for (var j = 0; j < this.size_y - 1; j++) {
                 if (this.s[i * n + j] != 0.0) {
@@ -50,8 +50,6 @@ class Fluid {
         const n = this.size_y;
         for (var iter = 0; iter < iterations; iter++) {
 
-            // this.new_u = this.u.slice();
-            // this.new_v = this.v.slice();
             for (var i = 1; i < this.size_x - 1; i++) {
                 for (var j = 1; j < this.size_y - 1; j++) {
 
@@ -67,15 +65,9 @@ class Fluid {
                         continue;
                     }
 
-                    d = 1.6 * d / s
+                    d = 1.8 * d / s
 
                     this.p[i * n + j] += d * 0.1; // not accurate, but it's only used in visualization anyways
-
-
-                    // this.new_u[i * n + j] -= sx0 * d
-                    // this.new_v[i * n + j] -= sy0 * d
-                    // this.new_u[(i + 1) * n + j] += sx1 * d
-                    // this.new_v[(i * n + j + 1)] += sy1 * d
 
                     this.u[i * n + j] -= sx0 * d
                     this.v[i * n + j] -= sy0 * d
@@ -83,8 +75,6 @@ class Fluid {
                     this.v[i * n + j + 1] += sy1 * d
                 }
             }
-            // this.u = this.new_u.slice();
-            // this.v = this.new_v.slice();
         }
     }
 
@@ -116,18 +106,6 @@ class Fluid {
         }
     }
 
-
-    // avgU(x, y) {
-    //     var u = (this.get_u_at(x, y - 1) + this.get_u_at(x, y) +
-    //         this.get_u_at(x + 1, y - 1) + this.get_u_at(x + 1, y)) * 0.25;
-    //     return u;
-    // }
-
-    // avgV(x, y) {
-    //     var v = (this.get_v_at(x, y - 1) + this.get_v_at(x, y) +
-    //         this.get_v_at(x + 1, y - 1) + this.get_v_at(x + 1, y)) * 0.25;
-    //     return v;
-    // }
     avgU(x, y) {
         var u = (
             this.get_u_at(x, y) +
@@ -223,11 +201,10 @@ class Fluid {
     }
 
     advect_velocity(dt) {
+
         // Since in reality a fluid is comprised of moving particles (and we only have a static grid),
         // we mimic the movement of particles by transferring velocities. Each cell inherits the velocity
         // of the cell where we estimate it would have "come from" (by subtracting u*dt from the current position).
-        // this.new_u = this.u.slice();
-        // this.new_v = this.v.slice();
 
         const n = this.size_y;
 
@@ -240,32 +217,23 @@ class Fluid {
 
                 var u_here = this.avgU(x, y);
                 var x_prev = x - (u_here * dt);
-                // var u_here = this.u[x * n + y];
-                // var x_prev = Math.floor(x - u_here * dt);
 
                 var v_here = this.avgV(x, y);
                 var y_prev = y - (v_here * dt);
-                // var v_here = this.v[x * n + y];
-                // var y_prev = Math.floor(y - v_here * dt);
 
                 var u_v_interp = this.interpolate_velocities(x_prev, y_prev);
                 this.new_u[x * n + y] = u_v_interp[0];
                 this.new_v[x * n + y] = u_v_interp[1];
-
-                // this.new_u[x * n + y] = this.avgU(x_prev,y_prev);
-                // this.new_v[x * n + y] = this.avgV(x_prev,y_prev);
 
             }
         }
 
         this.u = this.new_u.slice();
         this.v = this.new_v.slice();
-
     }
 
     advect_material(dt) {
 
-        // this.new_m = this.m.slice();
         const n = this.size_y;
 
         for (var x = 0; x < this.size_x; x++) {
@@ -277,15 +245,11 @@ class Fluid {
 
                 var u_here = this.avgU(x, y)
                 var x_prev = x - (u_here * dt)
-                // var x_prev = Math.floor(x - u_here * dt)
 
                 var v_here = this.avgV(x, y)
                 var y_prev = y - (v_here * dt)
-                // var y_prev = Math.floor(y - v_here * dt)
 
                 this.new_m[x * n + y] = this.interpolate_material(x_prev, y_prev)
-                // this.new_m[x * n + y] = this.get_m_at(x_prev, y_prev)
-
 
             }
         }
@@ -302,7 +266,7 @@ class Fluid {
             this.calc_gravity(dt);
         }
 
-        this.solve_incompressibility(dt, 4);
+        this.solve_incompressibility(dt, 20);
 
         if (sim_advection) {
             this.advect_velocity(dt);
@@ -311,6 +275,12 @@ class Fluid {
     }
 
     get_cell_data(x, y) {
+
+        if (x < 0 || x >= this.size_x ||
+            y < 0 || y >= this.size_y) {
+            return {};
+        }
+        
         var data = {};
         data['x'] = x;
         data['y'] = y;
@@ -398,8 +368,6 @@ function render_fluid(canvas, fluid, render_material, render_velocity, render_pr
                     if (v > u_v_exposure.max) u_v_exposure.max = v;
                     g += 255 * u_v_exposure.apply(u);
                     b += 255 * u_v_exposure.apply(v);
-                    // g += Math.abs(fluid.u[i * n + j])
-                    // b += Math.abs(fluid.v[i * n + j])
                 }
                 if (render_pressure) {
                     var p = fluid.p[i * n + j]
@@ -413,16 +381,11 @@ function render_fluid(canvas, fluid, render_material, render_velocity, render_pr
                 }
             }
 
-            // r *= 255;
-            // g *= 255;
-            // b *= 255;
-
             var px_begin = Math.floor(i * canvas.width / fluid.size_x)
             var px_end = Math.floor((i + 1) * canvas.width / fluid.size_x)
 
             var py_begin = Math.floor(j * canvas.height / fluid.size_y)
             var py_end = Math.floor((j + 1) * canvas.height / fluid.size_y)
-
 
             for (var iy = py_begin; iy < py_end; iy++) {
                 var p = 4 * (iy * canvas.width + px_begin)
@@ -443,6 +406,7 @@ function render_fluid(canvas, fluid, render_material, render_velocity, render_pr
     if (render_velocity) {
 
         ctx.lineWidth = 1;
+        var max_line_length = 2 * (canvas.width / fluid.size_x)
         for (var i = 0; i < fluid.size_x; i++) {
             for (var j = 0; j < fluid.size_y; j++) {
                 // var render_velocitiy_lines = true;
@@ -450,29 +414,13 @@ function render_fluid(canvas, fluid, render_material, render_velocity, render_pr
 
                 var start_x = (i + 0.5) * canvas.width / fluid.size_x;
                 var start_y = (j + 0.5) * canvas.height / fluid.size_y;
-                var end_x = start_x + fluid.u[i * n + j];
-                var end_y = start_y + fluid.v[i * n + j];
+                var end_x = start_x + Math.max(Math.min(fluid.u[i * n + j] * 0.1, max_line_length), -max_line_length);
+                var end_y = start_y + Math.max(Math.min(fluid.v[i * n + j] * 0.1, max_line_length), -max_line_length);
 
                 // Draw arrow line
                 ctx.moveTo(start_x, start_y);
                 ctx.lineTo(end_x, end_y);
                 ctx.stroke();
-
-                // // Draw arrow head
-                // const arrow_size = 4;
-                // const angle = Math.atan2(end_y - start_y, end_x - start_x);
-                // ctx.beginPath();
-                // ctx.moveTo(end_x, end_y);
-                // ctx.lineTo(
-                //     end_x - arrow_size * Math.cos(angle - Math.PI / 6),
-                //     end_y - arrow_size * Math.sin(angle - Math.PI / 6)
-                // );
-                // ctx.lineTo(
-                //     end_x - arrow_size * Math.cos(angle + Math.PI / 6),
-                //     end_y - arrow_size * Math.sin(angle + Math.PI / 6)
-                // );
-                // ctx.closePath();
-                // ctx.fill()
 
             }
         }
