@@ -12,16 +12,20 @@
 
             <div class="option-buttons">
                 <h4>Simulation options</h4>
-                <label> <input type="checkbox" id="cb_sim_gravity" checked> Gravity </label>
-                <label> <input type="checkbox" id="cb_sim_advection" checked> Advection </label>
-                <!-- <label> <input type="checkbox" id="cb_unused"> Option3 </label> -->
+            </div>
+
+            <div class="option-buttons">
+                <h4>Interaction options</h4>
+                <label> <input type="radio" name="radio_place_mode" id="radio_place_interact" checked> Interact </label>
+                <label> <input type="radio" name="radio_place_mode" id="radio_place_reflector"> Place reflector </label>
+                <label> <input type="radio" name="radio_place_mode" id="radio_place_generator"> Place generator </label>
             </div>
 
             <div class="sim-controls">
                 <div class="slider-container">
                     <label>dt: </label>
-                    <label class="slider_value" id="label_dt">0.001</label>
-                    <input type="range" step="0.001" min="0.001" max="0.1" value="0.01" class="slider" id="slider_dt">
+                    <label class="slider_value" id="label_dt">0.016</label>
+                    <input type="range" step="0.001" min="0.001" max="0.1" value="0.016" class="slider" id="slider_dt">
                 </div>
                 <div class="slider-container">
                     <label>FPS: </label>
@@ -39,9 +43,9 @@
 
             <div class="option-buttons">
                 <h4>Rendering options</h4>
-                <label> <input type="checkbox" id="cb_render_material" checked> Material </label>
+                <!-- <label> <input type="checkbox" id="cb_render_material" checked> Material </label>
                 <label> <input type="checkbox" id="cb_render_velocity" checked> Velocity </label>
-                <label> <input type="checkbox" id="cb_render_pressure" checked> Pressure </label>
+                <label> <input type="checkbox" id="cb_render_pressure" checked> Pressure </label> -->
             </div>
 
             <textarea class="cell-stats" id="cell-stats">
@@ -152,5 +156,5 @@
     }
 </style>
 
-<script src="fluid.js"></script>
-<script src="script.js"></script>
+<script src="wave_class.js"></script>
+<script src="wave.js"></script>

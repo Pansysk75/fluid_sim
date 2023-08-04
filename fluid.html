@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Canvas Drawing</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+
+<body>
+    <div class="grid-container">
+        <div class="control-row">
+
+            <div class="option-buttons">
+                <h4>Simulation options</h4>
+                <label> <input type="checkbox" id="cb_sim_gravity" checked> Gravity </label>
+                <label> <input type="checkbox" id="cb_sim_advection" checked> Advection </label>
+                <!-- <label> <input type="checkbox" id="cb_unused"> Option3 </label> -->
+            </div>
+
+            <div class="sim-controls">
+                <div class="slider-container">
+                    <label>dt: </label>
+                    <label class="slider_value" id="label_dt">0.016</label>
+                    <input type="range" step="0.001" min="0.001" max="0.1" value="0.016" class="slider" id="slider_dt">
+                </div>
+                <div class="slider-container">
+                    <label>FPS: </label>
+                    <label class="slider_value" id="label_fps">60</label>
+                    <input type="range" step="1" min="1" max="60" value="60" class="slider" id="slider_fps">
+                </div>
+                <div class="play-pause-buttons">
+                    <button id="btn_play">Play</button>
+                    <button id="btn_pause">Pause</button>
+                    <button id="btn_step">Step</button>
+                    <button id="btn_reset">RESET</button>
+                </div>
+
+            </div>
+
+            <div class="option-buttons">
+                <h4>Rendering options</h4>
+                <label> <input type="checkbox" id="cb_render_material" checked> Material </label>
+                <label> <input type="checkbox" id="cb_render_velocity" checked> Velocity </label>
+                <label> <input type="checkbox" id="cb_render_pressure" checked> Pressure </label>
+            </div>
+
+            <textarea class="cell-stats" id="cell-stats">
+                
+            </textarea>
+
+        </div>
+
+        <div class="canvas_container" id="canvas_container">
+            <canvas id="canvas"></canvas>
+        </div>
+
+    </div>
+
+</body>
+
+
+</html>
+
+<style>
+    .grid-container {
+        /* border: solid 2px blue; */
+        margin: auto 10%;
+        display: grid;
+        /* grid-template-rows: auto; */
+        /* grid-template-rows: 1fr 5fr; */
+        /* grid-template-rows: fit-content(20%) fit-content(100%); */
+        /* grid-template-rows: fit-content(20px) fit-content(100px) 1fr; */
+    }
+
+    .grid-container>* {
+        /* border: 2px solid red; */
+        background-color: rgba(130 130 140 / 0.2);
+        padding: 2px;
+    }
+
+    .control-row {
+        grid-row: 1;
+        display: flex;
+        flex-direction: row;
+        align-items: stretch;
+        /* align-items: flex-end; */
+        justify-content: space-between;
+    }
+
+    .control-row>* {
+        flex-basis: 0;
+        flex-grow: 1;
+        border: solid 2px brown;
+    }
+
+    .option-buttons {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .option-buttons>* {
+        margin: 0;
+        padding: 2px;
+        /* border: solid 2px purple; */
+    }
+
+    .sim-controls {
+        display: flex;
+        flex-direction: column;
+        /* justify-content: center; */
+        /* border: solid 2px purple; */
+    }
+
+    .sim-controls>* {
+        flex-basis: 0;
+        /* flex-grow: 1; */
+        /* border: solid 2px purple; */
+
+    }
+
+    .slider-container {
+        display: flex;
+        justify-content: center;
+    }
+
+    .slider-container>* {
+        padding: 2px;
+    }
+
+
+
+    .play-pause-buttons {
+        display: flex;
+        justify-content: center;
+        align-items: flex-end;
+        padding: 3px;
+    }
+
+    .cell-stats{
+        white-space: pre;
+    }
+
+    .canvas_container {
+        grid-row: 2;
+        /* display: flex;
+        justify-content: center; */
+    }
+
+    .canvas_container>* {
+        width: 100%;
+        height: 100%
+    }
+</style>
+
+<script src="fluid_class.js"></script>
+<script src="fluid.js"></script>
